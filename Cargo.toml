@@ -1,9 +1,25 @@
 [package]
 name = "mb-rs"
 version = "0.1.0"
-authors = ["Luiz Parreira <luizfilipester@gmail.com>"]
+authors = ["Luiz Parreira <luiz@bipa.app>"]
 edition = "2018"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+[lib]
+name = "mb"
+
 [dependencies]
+chrono = { version = "0.4", features = ["serde"] }
+reqwest = { version = "0.10.3", features = ["json", "blocking"]}
+serde_json = "1.0.44"
+hex = "0.4.2"
+hmac = "0.7.1"
+sha2 = "0.8.1"
+serde_urlencoded = "0.6.1"
+serde_repr = "0.1"
+
+[dependencies.serde]
+version = "1.0.104"
+features = ["derive"]
+
