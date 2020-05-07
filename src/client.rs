@@ -17,7 +17,7 @@ pub enum Error {
     #[fail(display = "Mercado Bitcoin CLient - Request Error: {}", _0)]
     RequestError(#[cause] reqwest::Error),
     #[fail(display = "Mercado Bitcoin CLient - API Error {}", _0)]
-    ApiError(ApiStatus),
+    ApiError(#[cause] ApiStatus),
 }
 
 /// Mercado Bitcoins possible API statuses
