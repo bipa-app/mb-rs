@@ -1,5 +1,6 @@
 use chrono::serde::ts_seconds;
 use chrono::{Date, DateTime, Datelike, Utc};
+use failure::Fail;
 use hmac::{Hmac, Mac};
 use serde::de::Deserializer;
 use serde::Deserialize;
@@ -11,44 +12,74 @@ use std::str::FromStr;
 
 const API_VERSION_PATH: &'static str = "/tapi/v3/";
 
-#[derive(Debug)]
+#[derive(Debug, Fail)]
 pub enum Error {
-    RequestError(reqwest::Error),
+    #[fail(display = "Mercado Bitcoin CLient - Request Error: {}", _0)]
+    RequestError(#[cause] reqwest::Error),
+    #[fail(display = "Mercado Bitcoin CLient - API Error {}", _0)]
     ApiError(ApiStatus),
 }
 
 /// Mercado Bitcoins possible API statuses
 /// See docs: https://www.mercadobitcoin.com.br/trade-api/#resposta-response
-#[derive(Deserialize_repr, PartialEq, Debug)]
+#[derive(Deserialize_repr, PartialEq, Debug, Fail)]
 #[repr(u32)]
 pub enum ApiStatus {
+    #[fail(display = "Success")]
     Success = 100,
+    #[fail(display = "Trading stopped")]
     TradingHalted = 199,
+    #[fail(display = "POST request required")]
     PostRequestRequired = 200,
+    #[fail(display = "Invalid TAPI-ID")]
     InvalidTapiID = 201,
+    #[fail(display = "Invalid TAPI-MAC")]
     InvalidTapiMac = 202,
+    #[fail(display = "Invalid TAPI nonce")]
     InvalidTapiNonce = 203,
+    #[fail(display = "Invalid TAPI method")]
     InvalidTapiMethod = 204,
+    #[fail(display = "Invalid Param")]
     InvalidParam = 206,
+    #[fail(display = "Request limit exceeded")]
     RequestLimitExceeded = 429,
+    #[fail(display = "Invalid request")]
     InvalidRequest = 430,
+    #[fail(display = "Blocked")]
     RequestBlocked = 431,
+    #[fail(display = "Internal Error")]
     InternalError = 500,
+    #[fail(display = "Read only key")]
     ReadOnlyKey = 211,
+    #[fail(display = "Invlaid coin pair")]
     InvalidCoinPair = 205,
+    #[fail(display = "Insuficient BRL balance")]
     InsuficientBrlBalance = 207,
+    #[fail(display = "Insuficient Bitcoin balance")]
     InsuficientBitcoinBalance = 215,
+    #[fail(display = "Insuficient Litecoin Balance")]
     InsuficientLitecoinBalance = 216,
+    #[fail(display = "Insuficient BCash balance")]
     InsuficientBCashBalance = 232,
+    #[fail(display = "Insuficient XRP balance")]
     InsuficientXRPBalance = 240,
+    #[fail(display = "Insuficient Ethereum balance")]
     InsuficientEthereumBalance = 243,
+    #[fail(display = "Invalid Bitcoin quanrtity")]
     InvalidBitcoinQuantity = 222,
+    #[fail(display = "Invalid Litecoin quantity")]
     InvalidLitecoinQuantity = 223,
+    #[fail(display = "Invalid BCash quantity")]
     InvalidBCashQuantity = 234,
+    #[fail(display = "Invalid XRP quantity")]
     InvalidXRPQuantity = 242,
+    #[fail(display = "Invalid Ethereum quantity")]
     InvalidEthereumQuantity = 245,
+    #[fail(display = "Invalid price")]
     InvalidPrice = 224,
+    #[fail(display = "Invalid decimal cases")]
     InvalidDecimalCases = 227,
+    #[fail(display = "Order still processing")]
     OrderProcessing = 432,
 }
 
