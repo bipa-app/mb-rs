@@ -368,7 +368,7 @@ pub enum OrderStatus {
 }
 
 #[derive(Deserialize, Debug)]
-pub struct OrderResponse {
+pub struct Order {
     pub order_id: i64,
     pub coin_pair: String,
     pub order_type: OrderType,
@@ -384,6 +384,11 @@ pub struct OrderResponse {
     pub executed_price_avg: f64,
     #[serde(deserialize_with = "from_str")]
     pub fee: f64,
+}
+
+#[derive(Deserialize, Debug)]
+pub struct OrderResponse {
+    pub order: Order,
 }
 
 impl Client {
