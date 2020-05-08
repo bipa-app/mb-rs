@@ -400,8 +400,8 @@ impl Client {
             ("tapi_method".to_string(), order_type.place_order_name()),
             ("tapi_nonce".to_string(), ts.to_string()),
             ("coin_pair".to_string(), coin_pair),
-            ("quantity".to_string(), quantity.to_string()),
-            ("limit_price".to_string(), limit_price.to_string()),
+            ("quantity".to_string(), format!("{:.2}", quantity)),
+            ("limit_price".to_string(), format!("{:.2}", limit_price)),
         ];
 
         let signature = self.sign(&params);
