@@ -1,4 +1,4 @@
-use chrono::serde::ts_seconds;
+use chrono::serde::ts_milliseconds;
 use chrono::{Date, DateTime, Datelike, Utc};
 use failure::Fail;
 use hmac::{Hmac, Mac};
@@ -103,14 +103,14 @@ mod mb_date {
     use chrono::{DateTime, TimeZone, Utc};
     use serde::{self, Deserialize, Deserializer};
 
-    const FORMAT: &'static str = "%Y-%m-%d %H:%M:%S";
+    const FORMAT: &'static str = "%Y-%m-%d %H:%M:%S%.6f";
 
     pub fn deserialize<'de, D>(deserializer: D) -> Result<DateTime<Utc>, D::Error>
     where
         D: Deserializer<'de>,
     {
         let s = String::deserialize(deserializer)?;
-        let date = format!("{} 23:59:59", s);
+        let date = format!("{} 23:59:59.004011", s);
         Utc.datetime_from_str(&date, FORMAT)
             .map_err(serde::de::Error::custom)
     }
@@ -230,7 +230,7 @@ pub struct Ticker {
     pub buy: f32,
     #[serde(deserialize_with = "from_str")]
     pub sell: f32,
-    #[serde(with = "ts_seconds")]
+    #[serde(with = "ts_milliseconds")]
     pub date: DateTime<Utc>,
 }
 
