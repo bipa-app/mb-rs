@@ -332,7 +332,7 @@ impl Client {
     /// Fetch the authenticated orderbook
     /// See docs: https://www.mercadobitcoin.com.br/trade-api/#list_orderbook
     pub fn orderbook(&self, coin_pair: String, full: bool) -> Result<OrderbookResponse, Error> {
-        let ts = Utc::now().timestamp_millis();
+        let ts = Utc::now().timestamp_nanos();
 
         let params = vec![
             ("tapi_method".to_string(), "list_orderbook".to_string()),
@@ -394,13 +394,13 @@ impl Client {
         limit_price: f64,
         coin_pair: String,
     ) -> Result<OrderResponse, Error> {
-        let ts = Utc::now().timestamp_millis();
+        let ts = Utc::now().timestamp_nanos();
 
         let params = vec![
             ("tapi_method".to_string(), order_type.place_order_name()),
             ("tapi_nonce".to_string(), ts.to_string()),
             ("coin_pair".to_string(), coin_pair),
-            ("quantity".to_string(), format!("{:.2}", quantity)),
+            ("quantity".to_string(), format!("{:.8}", quantity)),
             ("limit_price".to_string(), format!("{:.2}", limit_price)),
         ];
 
