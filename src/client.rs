@@ -448,3 +448,72 @@ impl Client {
         self.place_order(OrderType::Sell, quantity, limit_price, coin_pair)
     }
 }
+
+#[derive(Deserialize, Debug)]
+pub struct Balance {
+    #[serde(deserialize_with = "from_str")]
+    pub available: f64,
+    #[serde(deserialize_with = "from_str")]
+    pub total: f64,
+}
+
+#[derive(Deserialize, Debug)]
+pub struct BalancesResponse {
+    pub bch: Balance,
+    pub brl: Balance,
+    pub btc: Balance,
+    pub eth: Balance,
+    pub ltc: Balance,
+    pub xrp: Balance,
+    pub mbprk01: Balance,
+    pub mbprk02: Balance,
+    pub mbprk03: Balance,
+    pub mbprk04: Balance,
+    pub mbcons01: Balance,
+    pub usdc: Balance,
+}
+
+#[derive(Deserialize, Debug)]
+pub struct WithdrawalLimits {
+    pub bch: Balance,
+    pub brl: Balance,
+    pub btc: Balance,
+    pub eth: Balance,
+    pub ltc: Balance,
+    pub xrp: Balance,
+}
+
+#[derive(Deserialize, Debug)]
+pub struct AccountInfoResponse {
+    pub balance: BalancesResponse,
+    pub withdrawal_limits: WithdrawalLimits,
+}
+
+impl Client {
+    /// Get account info
+    /// See docs: https://www.mercadobitcoin.com.br/trade-api/#account-info
+    pub fn get_account_info(&self) -> Result<AccountInfoResponse, Error> {
+        let ts = Utc::now().timestamp_nanos();
+
+        let params = vec![
+            ("tapi_method".to_string(), "get_account_info".to_string()),
+            ("tapi_nonce".to_string(), ts.to_string()),
+        ];
+
+        let signature = self.sign(&params);
+
+        let response = reqwest::blocking::Client::new()
+            .post(&self.private_url())
+            .form(&params)
+            .header("TAPI-ID", self.identifier())
+            .header("TAPI-MAC", signature)
+            .send()?
+            .json::<Response<AccountInfoResponse>>()?;
+
+        if response.is_success() {
+            return Ok(response.response_data.unwrap());
+        }
+
+        Err(Error::ApiError(response.status_code))
+    }
+}
