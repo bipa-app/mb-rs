@@ -1,7 +1,7 @@
 use chrono::serde::ts_milliseconds;
 use chrono::{Date, DateTime, Datelike, Utc};
 use failure::Fail;
-use hmac::{Hmac, Mac};
+use hmac::{Hmac, Mac, NewMac};
 use serde::de::Deserializer;
 use serde::Deserialize;
 use serde_repr::Deserialize_repr;
@@ -207,9 +207,9 @@ impl Client {
         let mut mac = HmacSha512::new_varkey(self.secret().clone().as_bytes())
             .expect("HMAC can take key of any size");
 
-        mac.input(signature_param.as_bytes());
-        let result = mac.result();
-        let code_bytes = result.code();
+        mac.update(signature_param.as_bytes());
+        let result = mac.finalize();
+        let code_bytes = result.into_bytes();
 
         hex::encode(code_bytes)
     }
