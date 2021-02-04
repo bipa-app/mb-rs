@@ -243,11 +243,12 @@ impl Client {
     /// GET /<currency>/ticker
     ///     params:
     ///        - currency: BTC | ETH | LTC
-    pub fn ticker(&self, currency: &'static str) -> Result<TickerResponse, Error> {
+    pub async fn ticker(&self, currency: &'static str) -> Result<TickerResponse, Error> {
         let uri = format!("{}/{}/ticker", self.public_url(), currency);
-        reqwest::blocking::get(uri.as_str())?
+        Ok(reqwest::get(uri.as_str())
+            .await?
             .json::<TickerResponse>()
-            .map_err(Into::into)
+            .await?)
     }
 }
 
@@ -273,7 +274,7 @@ impl Client {
     ///        - year
     ///        - month
     ///        - day
-    pub fn day_summary(
+    pub async fn day_summary(
         &self,
         currency: &'static str,
         date: Date<Utc>,
@@ -286,9 +287,10 @@ impl Client {
             date.month(),
             date.day()
         );
-        reqwest::blocking::get(uri.as_str())?
+        Ok(reqwest::get(uri.as_str())
+            .await?
             .json::<DaySummary>()
-            .map_err(Into::into)
+            .await?)
     }
 }
 
@@ -331,7 +333,11 @@ pub struct OrderbookResponse {
 impl Client {
     /// Fetch the authenticated orderbook
     /// See docs: https://www.mercadobitcoin.com.br/trade-api/#list_orderbook
-    pub fn orderbook(&self, coin_pair: String, full: bool) -> Result<OrderbookResponse, Error> {
+    pub async fn orderbook(
+        &self,
+        coin_pair: String,
+        full: bool,
+    ) -> Result<OrderbookResponse, Error> {
         let ts = Utc::now().timestamp_nanos();
 
         let params = vec![
@@ -343,13 +349,15 @@ impl Client {
 
         let signature = self.sign(&params);
 
-        let response = reqwest::blocking::Client::new()
+        let response = reqwest::Client::new()
             .post(&self.private_url())
             .form(&params)
             .header("TAPI-ID", self.identifier())
             .header("TAPI-MAC", signature)
-            .send()?
-            .json::<Response<OrderbookResponse>>()?;
+            .send()
+            .await?
+            .json::<Response<OrderbookResponse>>()
+            .await?;
 
         if response.is_success() {
             return Ok(response.response_data.unwrap());
@@ -392,7 +400,7 @@ pub struct OrderResponse {
 }
 
 impl Client {
-    fn place_order(
+    async fn place_order(
         &self,
         order_type: OrderType,
         quantity: f64,
@@ -411,13 +419,15 @@ impl Client {
 
         let signature = self.sign(&params);
 
-        let response = reqwest::blocking::Client::new()
+        let response = reqwest::Client::new()
             .post(&self.private_url())
             .form(&params)
             .header("TAPI-ID", self.identifier())
             .header("TAPI-MAC", signature)
-            .send()?
-            .json::<Response<OrderResponse>>()?;
+            .send()
+            .await?
+            .json::<Response<OrderResponse>>()
+            .await?;
 
         if response.is_success() {
             return Ok(response.response_data.unwrap());
@@ -428,24 +438,26 @@ impl Client {
 
     /// Place a limit buy order
     /// See docs: https://www.mercadobitcoin.com.br/trade-api/#place_buy_order
-    pub fn place_buy_order(
+    pub async fn place_buy_order(
         &self,
         quantity: f64,
         limit_price: f64,
         coin_pair: String,
     ) -> Result<OrderResponse, Error> {
         self.place_order(OrderType::Buy, quantity, limit_price, coin_pair)
+            .await
     }
 
     /// Place a limit sell order
     /// See docs: https://www.mercadobitcoin.com.br/trade-api/#place_sell_order
-    pub fn place_sell_order(
+    pub async fn place_sell_order(
         &self,
         quantity: f64,
         limit_price: f64,
         coin_pair: String,
     ) -> Result<OrderResponse, Error> {
         self.place_order(OrderType::Sell, quantity, limit_price, coin_pair)
+            .await
     }
 }
 
@@ -492,7 +504,7 @@ pub struct AccountInfoResponse {
 impl Client {
     /// Get account info
     /// See docs: https://www.mercadobitcoin.com.br/trade-api/#account-info
-    pub fn get_account_info(&self) -> Result<AccountInfoResponse, Error> {
+    pub async fn get_account_info(&self) -> Result<AccountInfoResponse, Error> {
         let ts = Utc::now().timestamp_nanos();
 
         let params = vec![
@@ -502,13 +514,15 @@ impl Client {
 
         let signature = self.sign(&params);
 
-        let response = reqwest::blocking::Client::new()
+        let response = reqwest::Client::new()
             .post(&self.private_url())
             .form(&params)
             .header("TAPI-ID", self.identifier())
             .header("TAPI-MAC", signature)
-            .send()?
-            .json::<Response<AccountInfoResponse>>()?;
+            .send()
+            .await?
+            .json::<Response<AccountInfoResponse>>()
+            .await?;
 
         if response.is_success() {
             return Ok(response.response_data.unwrap());
