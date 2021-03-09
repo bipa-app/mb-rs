@@ -130,6 +130,13 @@ impl OrderType {
             Self::Sell => "place_sell_order".to_string(),
         }
     }
+
+    fn place_market_order_name(&self) -> String {
+        match self {
+            Self::Buy => "place_market_buy_order".to_string(),
+            Self::Sell => "place_market_sell_order".to_string(),
+        }
+    }
 }
 
 /// Public: The client responsible for initializing the configuration params
@@ -459,6 +466,61 @@ impl Client {
         self.place_order(OrderType::Sell, quantity, limit_price, coin_pair)
             .await
     }
+
+    async fn place_market_order(
+        &self,
+        order_type: OrderType,
+        coin_pair: String,
+        cost: f64,
+    ) -> Result<OrderResponse, Error> {
+        let ts = Utc::now().timestamp_nanos();
+
+        let params = vec![
+            (
+                "tapi_method".to_string(),
+                order_type.place_market_order_name(),
+            ),
+            ("tapi_nonce".to_string(), ts.to_string()),
+            ("coin_pair".to_string(), coin_pair),
+            ("cost".to_string(), format!("{:.2}", cost)),
+        ];
+
+        let signature = self.sign(&params);
+
+        let response = reqwest::Client::new()
+            .post(&self.private_url())
+            .form(&params)
+            .header("TAPI-ID", self.identifier())
+            .header("TAPI-MAC", signature)
+            .send()
+            .await?
+            .json::<Response<OrderResponse>>()
+            .await?;
+
+        if response.is_success() {
+            return Ok(response.response_data.unwrap());
+        }
+
+        Err(Error::ApiError(response.status_code))
+    }
+
+    pub async fn place_market_buy_order(
+        &self,
+        coin_pair: String,
+        cost: f64,
+    ) -> Result<OrderResponse, Error> {
+        self.place_market_order(OrderType::Buy, coin_pair, cost)
+            .await
+    }
+
+    pub async fn place_market_sell_order(
+        &self,
+        coin_pair: String,
+        cost: f64,
+    ) -> Result<OrderResponse, Error> {
+        self.place_market_order(OrderType::Sell, coin_pair, cost)
+            .await
+    }
 }
 
 #[derive(Deserialize, Debug)]
@@ -483,6 +545,7 @@ pub struct BalancesResponse {
     pub mbprk04: Balance,
     pub mbcons01: Balance,
     pub usdc: Balance,
+    pub paxg: Balance,
 }
 
 #[derive(Deserialize, Debug)]
@@ -493,6 +556,7 @@ pub struct WithdrawalLimits {
     pub eth: Balance,
     pub ltc: Balance,
     pub xrp: Balance,
+    pub paxg: Balance,
 }
 
 #[derive(Deserialize, Debug)]
