@@ -556,7 +556,6 @@ pub struct WithdrawalLimits {
     pub eth: Balance,
     pub ltc: Balance,
     pub xrp: Balance,
-    pub paxg: Balance,
 }
 
 #[derive(Deserialize, Debug)]
