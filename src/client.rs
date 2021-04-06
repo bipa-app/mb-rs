@@ -1,6 +1,5 @@
 use chrono::serde::ts_milliseconds;
 use chrono::{Date, DateTime, Datelike, Utc};
-use failure::Fail;
 use hmac::{Hmac, Mac, NewMac};
 use serde::de::Deserializer;
 use serde::Deserialize;
@@ -12,74 +11,74 @@ use std::str::FromStr;
 
 const API_VERSION_PATH: &'static str = "/tapi/v3/";
 
-#[derive(Debug, Fail)]
+#[derive(Debug, thiserror::Error)]
 pub enum Error {
-    #[fail(display = "Mercado Bitcoin CLient - Request Error: {}", _0)]
-    RequestError(#[cause] reqwest::Error),
-    #[fail(display = "Mercado Bitcoin CLient - API Error {}", _0)]
-    ApiError(#[cause] ApiStatus),
+    #[error("Mercado Bitcoin CLient - Request Error: {0}")]
+    RequestError(reqwest::Error),
+    #[error("Mercado Bitcoin CLient - API Error {0:?}")]
+    ApiError(ApiStatus),
 }
 
 /// Mercado Bitcoins possible API statuses
 /// See docs: https://www.mercadobitcoin.com.br/trade-api/#resposta-response
-#[derive(Deserialize_repr, PartialEq, Debug, Fail)]
+#[derive(Deserialize_repr, PartialEq, Debug, thiserror::Error)]
 #[repr(u32)]
 pub enum ApiStatus {
-    #[fail(display = "Success")]
+    #[error("Success")]
     Success = 100,
-    #[fail(display = "Trading stopped")]
+    #[error("Trading stopped")]
     TradingHalted = 199,
-    #[fail(display = "POST request required")]
+    #[error("POST request required")]
     PostRequestRequired = 200,
-    #[fail(display = "Invalid TAPI-ID")]
+    #[error("Invalid TAPI-ID")]
     InvalidTapiID = 201,
-    #[fail(display = "Invalid TAPI-MAC")]
+    #[error("Invalid TAPI-MAC")]
     InvalidTapiMac = 202,
-    #[fail(display = "Invalid TAPI nonce")]
+    #[error("Invalid TAPI nonce")]
     InvalidTapiNonce = 203,
-    #[fail(display = "Invalid TAPI method")]
+    #[error("Invalid TAPI method")]
     InvalidTapiMethod = 204,
-    #[fail(display = "Invalid Param")]
+    #[error("Invalid Param")]
     InvalidParam = 206,
-    #[fail(display = "Request limit exceeded")]
+    #[error("Request limit exceeded")]
     RequestLimitExceeded = 429,
-    #[fail(display = "Invalid request")]
+    #[error("Invalid request")]
     InvalidRequest = 430,
-    #[fail(display = "Blocked")]
+    #[error("Blocked")]
     RequestBlocked = 431,
-    #[fail(display = "Internal Error")]
+    #[error("Internal Error")]
     InternalError = 500,
-    #[fail(display = "Read only key")]
+    #[error("Read only key")]
     ReadOnlyKey = 211,
-    #[fail(display = "Invlaid coin pair")]
+    #[error("Invlaid coin pair")]
     InvalidCoinPair = 205,
-    #[fail(display = "Insuficient BRL balance")]
+    #[error("Insuficient BRL balance")]
     InsuficientBrlBalance = 207,
-    #[fail(display = "Insuficient Bitcoin balance")]
+    #[error("Insuficient Bitcoin balance")]
     InsuficientBitcoinBalance = 215,
-    #[fail(display = "Insuficient Litecoin Balance")]
+    #[error("Insuficient Litecoin Balance")]
     InsuficientLitecoinBalance = 216,
-    #[fail(display = "Insuficient BCash balance")]
+    #[error("Insuficient BCash balance")]
     InsuficientBCashBalance = 232,
-    #[fail(display = "Insuficient XRP balance")]
+    #[error("Insuficient XRP balance")]
     InsuficientXRPBalance = 240,
-    #[fail(display = "Insuficient Ethereum balance")]
+    #[error("Insuficient Ethereum balance")]
     InsuficientEthereumBalance = 243,
-    #[fail(display = "Invalid Bitcoin quanrtity")]
+    #[error("Invalid Bitcoin quanrtity")]
     InvalidBitcoinQuantity = 222,
-    #[fail(display = "Invalid Litecoin quantity")]
+    #[error("Invalid Litecoin quantity")]
     InvalidLitecoinQuantity = 223,
-    #[fail(display = "Invalid BCash quantity")]
+    #[error("Invalid BCash quantity")]
     InvalidBCashQuantity = 234,
-    #[fail(display = "Invalid XRP quantity")]
+    #[error("Invalid XRP quantity")]
     InvalidXRPQuantity = 242,
-    #[fail(display = "Invalid Ethereum quantity")]
+    #[error("Invalid Ethereum quantity")]
     InvalidEthereumQuantity = 245,
-    #[fail(display = "Invalid price")]
+    #[error("Invalid price")]
     InvalidPrice = 224,
-    #[fail(display = "Invalid decimal cases")]
+    #[error("Invalid decimal cases")]
     InvalidDecimalCases = 227,
-    #[fail(display = "Order still processing")]
+    #[error("Order still processing")]
     OrderProcessing = 432,
 }
 
