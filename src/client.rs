@@ -64,7 +64,7 @@ pub enum ApiStatus {
     InsuficientXRPBalance = 240,
     #[error("Insuficient Ethereum balance")]
     InsuficientEthereumBalance = 243,
-    #[error("Invalid Bitcoin quanrtity")]
+    #[error("Invalid Bitcoin quantity")]
     InvalidBitcoinQuantity = 222,
     #[error("Invalid Litecoin quantity")]
     InvalidLitecoinQuantity = 223,
