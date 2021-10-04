@@ -210,7 +210,7 @@ impl Client {
 
         let signature_param = format!("{}?{}", API_VERSION_PATH, params);
 
-        let mut mac = HmacSha512::new_varkey(self.secret().clone().as_bytes())
+        let mut mac = HmacSha512::new_from_slice(self.secret().clone().as_bytes())
             .expect("HMAC can take key of any size");
 
         mac.update(signature_param.as_bytes());
